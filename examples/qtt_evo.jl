@@ -1,27 +1,33 @@
+using Revise # Keep track of module development
+include("plotting.jl")
+
 using ITensors
 using ITensorQTT
 using WavesQTT
 using Plots
+using LaTeXStrings
 
 # domain and discretization parameters
 ITensors.disable_warn_order()
-n = 9 # Can't run it locally above 9
-x = range(-30, 30; length=2^n)
-tsteps = 10
-Δt = 0.05
 
-# initial solution (Breather)
-a = 0.01
-k = 0.1 / a
-HH(x) = sqrt(2) * x * k^2 * a
-usol(x) = a * (-1 + 4 / (1 + 4 * HH(x)^2))
-ψ₀ = Complex{Float64}[usol(i) for i in x]
+# Simulation parameters
+n = 8
+xrange = [-30.0, 30.0]
+x = range(xrange[1], xrange[2]; length=2^n)
+Δx = x[2] - x[1]
+Δt = 0.05
+tsteps = 20
+
+# initial solution (Soliton)
+ψ₀ = soliton(x; x₀=-5, v=1)
 
 # QTT split-step evolution
-ψₜ = qtt_splitsteps(ψ₀, n, (-50.0, 50.0), Δt, tsteps)
+ψₜ = qtt_splitsteps(ψ₀, n, Δx, Δt, tsteps)
+ψₜ = mps_to_discrete_function(ψₜ)
 
 # plot
-p = plot(x, abs.(ψ₀))
-xlims!(-10, 10)
-plot!(x, abs.(mps_to_discrete_function(ψₜ)))
-savefig(p, "plot.png")
+times = [0.0, Δt * tsteps]
+t_labels = ["\$t_0 = $(times[1])\$" "\$t_n = $(times[2])\$"]
+
+my_plot_1D(x, [ψ₀, ψₜ]; label=t_labels)
+#savefig(p, "plot.png")

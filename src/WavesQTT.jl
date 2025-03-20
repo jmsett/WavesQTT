@@ -8,6 +8,6 @@ using FFTW
 
 include("splitstep.jl")
 
-export qtt_splitsteps, fft_splitsteps
+export qtt_splitsteps, fft_splitsteps, soliton, peregrine
 
 end
